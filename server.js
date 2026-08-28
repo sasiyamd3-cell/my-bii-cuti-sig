@@ -26,7 +26,7 @@ let state = {
     profitCount: 0,
     peakBalance: 11.00,
     trades: [],
-    password: '1234',
+    password: '2010', // ← PASSWORD 2010
     sessionId: null
 };
 
@@ -114,7 +114,7 @@ io.on('connection', (socket) => {
     // Send initial state
     socket.emit('init', state);
     
-    // Password verification
+    // Password verification (2010)
     socket.on('verify_password', (data) => {
         if (data.password === state.password) {
             state.isVerified = true;
@@ -175,5 +175,6 @@ io.on('connection', (socket) => {
 // ===== SERVER =====
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on http://localhost:3000`);
+    console.log(`🔑 Password: 2010`);
 });
