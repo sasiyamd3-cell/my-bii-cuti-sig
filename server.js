@@ -21,10 +21,13 @@ let state = {
     mppsStable: true,
     isRunning: false,
     isVerified: false,
+    isCameraVerified: false,
     lossTriggered: false,
     profitCount: 0,
     peakBalance: 11.00,
-    trades: []
+    trades: [],
+    password: '1234',
+    sessionId: null
 };
 
 // ===== MPPS SIMULATION =====
@@ -44,7 +47,7 @@ setInterval(() => {
 
 // ===== TRADING ENGINE =====
 setInterval(() => {
-    if (!state.isRunning || !state.isVerified) return;
+    if (!state.isRunning || !state.isVerified || !state.isCameraVerified) return;
     
     const totalValue = state.voltBalance * state.voltPrice;
     
@@ -73,17 +76,18 @@ setInterval(() => {
     
     // === PROFIT MODE (MPPS 48) ===
     if (totalValue < 500) {
-        const profit = (Math.random() * 0.35 + 0.05);
+        // SLOW PROFIT — චුට්ට චුට්ට
+        const profit = (Math.random() * 0.15 + 0.02);
         state.balance += profit;
         state.totalProfit += profit;
-        state.voltPrice = Math.min(2.50, state.voltPrice + (Math.random() * 0.02));
+        state.voltPrice = Math.min(2.50, state.voltPrice + (Math.random() * 0.008));
         state.voltPrice = Math.round(state.voltPrice * 1000) / 1000;
         state.profitCount++;
         
         const trade = {
             pair: 'VOLT/BTC',
             side: 'BUY',
-            amount: (Math.random() * 0.3 + 0.05).toFixed(2) + ' VOLT',
+            amount: (Math.random() * 0.1 + 0.02).toFixed(2) + ' VOLT',
             profit: profit,
             time: 'just now',
             type: 'profit'
@@ -100,20 +104,41 @@ setInterval(() => {
         io.emit('target_reached', { balance: state.balance });
     }
     
-}, 3000);
+}, 3500);
 
 // ===== SOCKET EVENTS =====
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
+    state.sessionId = socket.id;
     
     // Send initial state
     socket.emit('init', state);
     
+    // Password verification
+    socket.on('verify_password', (data) => {
+        if (data.password === state.password) {
+            state.isVerified = true;
+            io.emit('password_verified', { success: true });
+        } else {
+            io.emit('password_verified', { success: false });
+        }
+    });
+    
+    // Camera verification (face scan)
+    socket.on('camera_verify', (data) => {
+        // Simulate face scan
+        setTimeout(() => {
+            state.isCameraVerified = true;
+            io.emit('camera_verified', { success: true });
+        }, 3000);
+    });
+    
     // Start trading
-    socket.on('start_trading', (data) => {
-        state.isRunning = true;
-        state.isVerified = true;
-        io.emit('status_update', { status: 'trading', message: 'Trading started!' });
+    socket.on('start_trading', () => {
+        if (state.isVerified && state.isCameraVerified) {
+            state.isRunning = true;
+            io.emit('status_update', { status: 'trading', message: 'Trading started!' });
+        }
     });
     
     // Stop trading
@@ -125,7 +150,7 @@ io.on('connection', (socket) => {
     // Withdraw
     socket.on('withdraw', (data) => {
         const total = state.balance;
-        if (total >= 500) {
+        if (total >= 500 && state.isVerified && state.isCameraVerified) {
             io.emit('withdraw_success', { amount: total });
             // Reset
             state.balance = 11.00;
@@ -135,9 +160,10 @@ io.on('connection', (socket) => {
             state.lossTriggered = false;
             state.profitCount = 0;
             state.peakBalance = 11.00;
+            state.isRunning = false;
             io.emit('reset', state);
         } else {
-            io.emit('withdraw_fail', { message: 'Minimum $500 required' });
+            io.emit('withdraw_fail', { message: 'Minimum $500 required or not verified' });
         }
     });
     
